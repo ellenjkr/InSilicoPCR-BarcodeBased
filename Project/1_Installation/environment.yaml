@@ -1,0 +1,15 @@
+name: InSilico_PCR
+channels:
+  - defaults
+  - bioconda
+  - r
+dependencies:
+  - git
+  - git-lfs
+  - snakemake-minimal
+  - python =3.6
+  - bioawk
+  - bbmap
+  - pigz
+  - pip
+  - r-essentials

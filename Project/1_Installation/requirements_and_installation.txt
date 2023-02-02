@@ -1,0 +1,13 @@
+Original project: https://github.com/Nucleomics-VIB/InSilico_PCR
+
+
+First create environment using mamba: mamba env create -f environment.yaml
+*environment.yaml and config.yaml must be in the same folder that you're in, or you have to specify the path. environment.yaml and config.yaml must be in the same folder.
+
+In the virtual_pcr.sh file. adapt the "source" line to point where the conda.sh file is located in the computer
+
+To run:
+	Call the command: bash virtual_pcr.sh
+	You must include some arguments, to check the options: bash virtual_pcr -h
+
+Attention: The directory name cannot have spaces
