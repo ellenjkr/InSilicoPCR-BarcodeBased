@@ -28,7 +28,7 @@ forwardl="Forward"
 reversel="Reverse"
 
 # be stringent to avoid noisy reads
-cut=0.8
+cut=1.0
 
 # split in 500k read bins and zip
 lines=2000000
@@ -162,6 +162,7 @@ jobt=$((${thr}/${jobs}))
 ######################################################
 # find forward primer using a fraction of the threads
 
+
 if [[ ! -f ${logs}/done.searching.${name}_${forwardl} ]]; then
   echo "# searching for forward primer sequence: ${forwardp} in all files"
   find ${split} -type f -name "${name}_???.fq.gz" -printf '%P\n' |\
@@ -174,7 +175,7 @@ if [[ ! -f ${logs}/done.searching.${name}_${forwardl} ]]; then
       rcomp=t \
       addr=t \
       replicate=t \
-      cutoff=${cut} && \
+      cutoff=1.0 && \
     touch ${logs}/done.searching.${name}_${forwardl}
 else
   echo "# forward search already done"
@@ -197,7 +198,7 @@ if [[ ! -f ${logs}/done.searching.${name}_${reversel} ]]; then
       rcomp=t \
       addr=t \
       replicate=t \
-      cutoff=${cut} && \
+      cutoff=1.0 && \
   touch ${logs}/done.searching.${name}_${reversel}
 else
   echo "# reverse search already done"
@@ -230,7 +231,7 @@ if [[ ! -f ${logs}/done.merging.${name}_${forwardl}_${reversel} ]]; then
   # final="output/${name}_filtered_${forwardl}_${reversel}.fa"
   file_name="${name/.fastq.gz/""}"  
   # final="output/${file_name}_${primername}_extracted_regions.fa"
-  final="output/All/PCR_${readminlen}-${readmaxlen}_filtered_${primername}.fa"
+  final="output/${primername}.fa"
 
   # cat /dev/null > ${final}
   echo "# filtering results at min:${readminlen} and max:${readmaxlen} and merging to ${final}"
@@ -247,26 +248,46 @@ else
   echo "# force redo by deleting ${logs}/done.merging.${name}_${forwardl}_${reversel}"
 fi
 
+
 # Renomeia IDs das sequências para um contador: awk '/^>/{print ">" ++i; next}{print}'
 
 # return to normal
 conda deactivate
 
-python fix_orientation.py $forwardp $reversep $final
+# ===================================================================
+# isso aqui era usado quando separávamos as orientações  por pasta
+
+# python fix_orientation.py $forwardp $reversep $final
 
 # Remove line breaks in sequences:
 
-cd output
+# cd output
 
-for folder in $(ls); do
-  for file in $folder/*.fa; do
-    seqtk seq -l 0 $file > $folder/tmp.fa
-    rm $file
-    mv $folder/tmp.fa $file
-  done
-done
+# for folder in $(ls); do
+#   for file in $folder/*.fa; do
+#     seqtk seq -l 0 $file > $folder/tmp.fa
+#     rm $file
+#     mv $folder/tmp.fa $file
+#   done
+# done
 
-cd ..
+# cd ..
+# ===================================================================
+
+# agora fazemos assim:
+
+# python get_orientations.py -f $forwardp -r $reversep -s $final --f_rc --rc_f --fc_r --r_fc
+
+
+# for file in output/*.fa; do
+#   seqtk seq -l 0 $file > output/tmp.fa
+#   rm $file
+#   mv output/tmp.fa $file
+# done
+
+# ===================================================================
+
+
 
 rm -r $split
 rm -r $logs

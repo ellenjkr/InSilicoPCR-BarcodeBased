@@ -1,15 +1,19 @@
 #!/bin/bash
 
 mkdir -p output
-mkdir -p output/All
-mkdir -p output/F_R
-mkdir -p output/F_R_WRONG
-mkdir -p output/FCR
-mkdir -p output/RCR
 
-for seq_file in input/*.gz; do  # Para cada arquivo de sequências
-	primers=( input/*.tsv )
+# for seq_file in input/*.gz; do  # Para cada arquivo de sequências
+# 	primers=( input/*.tsv )
+# 	while read name	forward	reverse min limit; do
+# 		bash virtual_pcr.sh -c 0.9 -n $name -f $forward -r $reverse -i $seq_file -m $min -l $limit -t 4
+# 	done < ${primers[0]};
+# done
+
+
+
+for primers in input/*.tsv; do
+	seq_file=( input/*.gz )
 	while read name	forward	reverse min limit; do
-		bash virtual_pcr.sh -c 0.9 -n $name -f $forward -r $reverse -i $seq_file -m $min -l $limit
+		bash virtual_pcr.sh -c 0.9 -n $name -f $forward -r $reverse -i $seq_file -m $min -l $limit -t 10
 	done < ${primers[0]};
 done
