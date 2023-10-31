@@ -175,7 +175,7 @@ if [[ ! -f ${logs}/done.searching.${name}_${forwardl} ]]; then
       rcomp=t \
       addr=t \
       replicate=t \
-      cutoff=1.0 && \
+      cutoff="${cut}" && \
     touch ${logs}/done.searching.${name}_${forwardl}
 else
   echo "# forward search already done"
@@ -198,11 +198,14 @@ if [[ ! -f ${logs}/done.searching.${name}_${reversel} ]]; then
       rcomp=t \
       addr=t \
       replicate=t \
-      cutoff=1.0 && \
+      cutoff="${cut}" && \
   touch ${logs}/done.searching.${name}_${reversel}
 else
   echo "# reverse search already done"
 fi
+
+
+python stretch_length_for_barcodes.py ${tmpout}/forward.sam ${tmpout}/reverse.sam
 
 ##########################################
 # extract regions with BBMap cutprimers.sh
@@ -225,23 +228,21 @@ fi
 ###########################################################
 # merge results and keep only reads in amplicon size range
 
-
 if [[ ! -f ${logs}/done.merging.${name}_${forwardl}_${reversel} ]]; then
   # clear existing results
   # final="output/${name}_filtered_${forwardl}_${reversel}.fa"
   file_name="${name/.fastq.gz/""}"  
   # final="output/${file_name}_${primername}_extracted_regions.fa"
-  final="output/${primername}.fa"
-
+  final="output/${primername}.fq"
+  final2="output/${primername}.fa"
+  echo ${readmaxlen}
   # cat /dev/null > ${final}
   echo "# filtering results at min:${readminlen} and max:${readmaxlen} and merging to ${final}"
   find ${tmpout} -type f -name "${name}_???.fq.gz_16s.fq" | \
     sort -n |\
     xargs cat |\
-    bioawk -c fastx -v min="${readminlen}" -v max="${readmaxlen}" \
-    '{if (length($seq)>=min && length($seq)<=max)
-      print "@"$name" "$comment"\n"$seq"\n+\n"$qual}' | \
-    bioawk -c fastx '{print ">"$name"\n"$seq}' > $final && \
+    seqkit seq -m "${readminlen}" -M "${readmaxlen}" > $final && \
+    seqkit fq2fa $final -o $final2 && \
   touch ${logs}/done.merging.${name}_${forwardl}_${reversel}
 else
   echo "# merging and filtering already done"
@@ -253,6 +254,9 @@ fi
 
 # return to normal
 conda deactivate
+
+
+python sep_samples.py barcodes/barcodes.tsv ${primername}
 
 # ===================================================================
 # isso aqui era usado quando separávamos as orientações  por pasta
@@ -289,9 +293,9 @@ conda deactivate
 
 
 
-rm -r $split
-rm -r $logs
-rm -r $tmpout
-rm -r $runlog
-rm -r $PWD/tmp
+# rm -r $split
+# rm -r $logs
+# rm -r $tmpout
+# rm -r $runlog
+# rm -r $PWD/tmp
 
