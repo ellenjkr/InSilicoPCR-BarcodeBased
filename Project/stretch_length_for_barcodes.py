@@ -20,7 +20,6 @@ def change_position(sam_file, barcode_length):
 		sam_temp.write(sam_content)
 
 
-change_position(sys.argv[1], 5)
-change_position(sys.argv[2], 5)
-
-
+barcodes = int(sys.argv[3])
+change_position(sys.argv[1], barcodes)
+change_position(sys.argv[2], barcodes)

@@ -42,8 +42,6 @@ sequences_df.loc[~sequences_df['QNAME_y'].str.contains('r_'), 'SEQ_R_BAR'] = seq
 
 samples_sequences_df = sequences_df.merge(df, left_on=['SEQ_F_BAR', 'SEQ_R_BAR'], right_on=['FORWARD_BARCODE', 'REVERSE_BARCODE'])
 
-
-samples_sequences_df.to_csv('test.tsv', sep='\t', index=False)
 grouped = samples_sequences_df.groupby('SAMPLE_ID')
 for sample_id, data in grouped:
     file_name = f"output/{sample_id}.fa"
@@ -52,43 +50,8 @@ for sample_id, data in grouped:
 
             if 'r_' not in row['QNAME_x'] and 'r_' in row['QNAME_y'] and row['POS_x'] < row['POS_y']: 
                 file.write(f">{row['ID']}\n{row['Sequence']}\n")
-                print('1')
             
             elif 'r_' not in row['QNAME_y'] and 'r_' in row['QNAME_x'] and row['POS_y'] < row['POS_x']: 
                 sequence = str(Seq(row['Sequence']).reverse_complement())
                 file.write(f">{row['ID']}\n{sequence}\n")
-                print('2')
-            else:
-                print('outro')
-
-
-
-# ==========================================================================================
-
-# OLD VERSION:
-
-# for pos, record in enumerate(record_dict.keys()):
-# 	forward_alignment = forward_sam.loc[forward_sam['RNAME'] == record].iloc[0]
-# 	if 'r_' in forward_alignment['QNAME']:
-# 		forward_barcode = str(record_dict[record].seq[-5:].reverse_complement())
-# 	else:
-# 		forward_barcode = str(record_dict[record].seq[:5])
-
-# 	reverse_alignment = reverse_sam.loc[reverse_sam['RNAME'] == record].iloc[0]
-# 	if 'r_' in reverse_alignment['QNAME']:
-# 		reverse_barcode = str(record_dict[record].seq[-5:].reverse_complement())
-# 	else:
-# 		reverse_barcode = str(record_dict[record].seq[:5])
-
-
-# 	mask = (df['FORWARD_BARCODE'] == forward_barcode) & (df['REVERSE_BARCODE'] == reverse_barcode)
-# 	sample = df.loc[mask]['SAMPLE_ID']
-
-# 	if sample.empty is False:
-# 		sample = sample.iloc[0]
-# 		samples[sample].append(record_dict[record])
-
-# for sample in samples.keys():
-# 	SeqIO.write(samples[sample], f'output/{sample}.fa', "fasta")
-
 

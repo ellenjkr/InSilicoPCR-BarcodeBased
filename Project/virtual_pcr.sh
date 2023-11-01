@@ -30,6 +30,8 @@ reversel="Reverse"
 # be stringent to avoid noisy reads
 cut=1.0
 
+barcodes_len=5
+
 # split in 500k read bins and zip
 lines=2000000
 
@@ -40,6 +42,8 @@ qual=33
 # adjust if you notice that the sequence extraction has unwanted tail(s)
 readminlen=10
 readmaxlen=100000
+
+
 
 # whether to include the primer matches or to clip them (t/f)
 primincl="t"
@@ -58,6 +62,7 @@ Help()
    echo "   -m      Expected amplicon size limits, minimum [DEFAULT: 10]"
    echo "   -l      Expected amplicon size limits, limit [DEFAULT: 100000]"
    echo "   -c      Cutoff value (identity/similarity) [0-1] [DEFAULT: 0.8]"
+   echo "   -b      Barcodes length. [DEFAULT: 5]"
    echo 
    echo "Required Arguments:"
    echo "   -n      Primer Pair Name"
@@ -67,17 +72,18 @@ Help()
 }
 
 
-while getopts hc:t:q:m:l:n:f:r:i: flag
+while getopts hc:b:t:q:m:M:n:f:r:i: flag
 do
     case "${flag}" in
         h) # display Help
             Help
             exit 1;;
         c) cut=${OPTARG};;
+        b) barcodes_len=${OPTARG};;
         t) thr=${OPTARG};;
         q) qual=${OPTARG};;
         m) readminlen=${OPTARG};;
-        l) readmaxlen=${OPTARG};;
+        M) readmaxlen=${OPTARG};;
         n) primername=${OPTARG};;
         f) forwardp=${OPTARG};;
         r) reversep=${OPTARG};;
@@ -205,7 +211,7 @@ else
 fi
 
 
-python stretch_length_for_barcodes.py ${tmpout}/forward.sam ${tmpout}/reverse.sam
+python stretch_length_for_barcodes.py ${tmpout}/forward.sam ${tmpout}/reverse.sam ${barcodes_len}
 
 ##########################################
 # extract regions with BBMap cutprimers.sh
@@ -250,52 +256,17 @@ else
 fi
 
 
-# Renomeia IDs das sequências para um contador: awk '/^>/{print ">" ++i; next}{print}'
-
 # return to normal
 conda deactivate
+
+# ===============================================================================
 
 
 python sep_samples.py barcodes/barcodes.tsv ${primername}
 
-# ===================================================================
-# isso aqui era usado quando separávamos as orientações  por pasta
-
-# python fix_orientation.py $forwardp $reversep $final
-
-# Remove line breaks in sequences:
-
-# cd output
-
-# for folder in $(ls); do
-#   for file in $folder/*.fa; do
-#     seqtk seq -l 0 $file > $folder/tmp.fa
-#     rm $file
-#     mv $folder/tmp.fa $file
-#   done
-# done
-
-# cd ..
-# ===================================================================
-
-# agora fazemos assim:
-
-# python get_orientations.py -f $forwardp -r $reversep -s $final --f_rc --rc_f --fc_r --r_fc
-
-
-# for file in output/*.fa; do
-#   seqtk seq -l 0 $file > output/tmp.fa
-#   rm $file
-#   mv output/tmp.fa $file
-# done
-
-# ===================================================================
-
-
-
-# rm -r $split
-# rm -r $logs
-# rm -r $tmpout
-# rm -r $runlog
-# rm -r $PWD/tmp
+rm -r $split
+rm -r $logs
+rm -r $tmpout
+rm -r $runlog
+rm -r $PWD/tmp
 
