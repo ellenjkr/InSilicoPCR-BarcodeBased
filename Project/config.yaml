@@ -2,4 +2,6 @@ INPUT_PATH: input
 OUTPUT_PATH: output
 THREADS: 10
 IDENTITY: 0.85 # [0-1]
+HAS_BARCODES: false
 BARCODES_LEN: 5
+BARCODES_PATH: barcodes/barcodes.tsv

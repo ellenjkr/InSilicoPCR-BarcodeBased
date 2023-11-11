@@ -7,10 +7,11 @@ from Bio.Seq import Seq
 
 barcodes_file = sys.argv[1]
 primer_name = sys.argv[2]
+out_path = sys.argv[3]
 
 # barcodes_file = 'barcodes/barcodes.tsv'
 # primer_name = 'BAC1'
-
+# out_path = 'output/bac/'
 
 df = pd.read_csv(barcodes_file, sep='\t', names=['SAMPLE_ID', 'PRIMER_ID', 'FORWARD_BARCODE', 'REVERSE_BARCODE'])
 df = df.loc[df['PRIMER_ID'] == primer_name]
@@ -26,7 +27,7 @@ forward_sam.loc[forward_sam['RNAME'] != '*', 'RNAME'] = forward_sam.loc[forward_
 reverse_sam = pd.read_csv('bbmap_out/reverse.sam', sep='\t', skiprows=[0], names=['QNAME', 'FLAG', 'RNAME', 'POS', 'MAPQ', 'CIGAR', 'RNEXT', 'PNEXT', 'TLEN', 'SEQ', 'QUAL', 'Identity'])
 reverse_sam.loc[reverse_sam['RNAME'] != '*', 'RNAME'] = reverse_sam.loc[reverse_sam['RNAME'] != '*', 'RNAME'].str.split().str[0]
 
-record_dict = SeqIO.to_dict(SeqIO.parse(f'output/{primer_name}.fa', "fasta"))
+record_dict = SeqIO.to_dict(SeqIO.parse(f'{out_path}{primer_name}.fa', "fasta"))
 
 
 data = {"ID": [seq_record.id for seq_record in record_dict.values()], "Description": [seq_record.description for seq_record in record_dict.values()], "Sequence": [str(seq_record.seq) for seq_record in record_dict.values()]}
@@ -47,7 +48,7 @@ samples_sequences_df = sequences_df.merge(df, left_on=['SEQ_F_BAR', 'SEQ_R_BAR']
 
 grouped = samples_sequences_df.groupby('SAMPLE_ID')
 for sample_id, data in grouped:
-    file_name = f"output/{sample_id}.fa"
+    file_name = f"{out_path}{sample_id}.fa"
     with open(file_name, 'w') as file:
         for index, row in data.iterrows():
 

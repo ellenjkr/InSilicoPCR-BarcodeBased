@@ -72,14 +72,18 @@ Help()
 }
 
 
-while getopts hc:b:t:q:m:M:n:f:r:i: flag
+while getopts hs:o:c:b:l:B:t:q:m:M:n:f:r:i: flag
 do
     case "${flag}" in
         h) # display Help
             Help
             exit 1;;
+        s) primer_set=${OPTARG};;
+        o) out_folder=${OPTARG};;
         c) cut=${OPTARG};;
-        b) barcodes_len=${OPTARG};;
+        l) barcodes_len=${OPTARG};;
+        b) has_barcodes=${OPTARG};;
+        B) barcodes_file=${OPTARG};;
         t) thr=${OPTARG};;
         q) qual=${OPTARG};;
         m) readminlen=${OPTARG};;
@@ -210,9 +214,9 @@ else
   echo "# reverse search already done"
 fi
 
-
-python stretch_length_for_barcodes.py ${tmpout}/forward.sam ${tmpout}/reverse.sam ${barcodes_len}
-
+if [ $has_barcodes = true ] ; then
+    python stretch_length_for_barcodes.py ${tmpout}/forward.sam ${tmpout}/reverse.sam ${barcodes_len}
+fi
 ##########################################
 # extract regions with BBMap cutprimers.sh
 
@@ -239,8 +243,11 @@ if [[ ! -f ${logs}/done.merging.${name}_${forwardl}_${reversel} ]]; then
   # final="output/${name}_filtered_${forwardl}_${reversel}.fa"
   file_name="${name/.fastq.gz/""}"  
   # final="output/${file_name}_${primername}_extracted_regions.fa"
-  final="output/${primername}.fq"
-  final2="output/${primername}.fa"
+
+
+  mkdir -p ${out_folder}/${primer_set}
+  final="${out_folder}${primer_set}/${primername}.fq"
+  final2="${out_folder}${primer_set}/${primername}.fa"
 
   # cat /dev/null > ${final}
   echo "# filtering results at min:${readminlen} and max:${readmaxlen} and merging to ${final}"
@@ -261,8 +268,10 @@ conda deactivate
 
 # ===============================================================================
 
+if [ $has_barcodes = true ] ; then
+  python sep_samples.py ${barcodes_file} ${primername} ${out_folder}${primer_set}/
+fi
 
-python sep_samples.py barcodes/barcodes.tsv ${primername}
 
 rm -r $split
 rm -r $logs
