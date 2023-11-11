@@ -241,7 +241,7 @@ if [[ ! -f ${logs}/done.merging.${name}_${forwardl}_${reversel} ]]; then
   # final="output/${file_name}_${primername}_extracted_regions.fa"
   final="output/${primername}.fq"
   final2="output/${primername}.fa"
-  echo ${readmaxlen}
+
   # cat /dev/null > ${final}
   echo "# filtering results at min:${readminlen} and max:${readmaxlen} and merging to ${final}"
   find ${tmpout} -type f -name "${name}_???.fq.gz_16s.fq" | \

@@ -3,11 +3,13 @@ import pandas as pd
 import os
 from Bio import SeqIO
 from Bio.Seq import Seq
-# barcodes_file = sys.argv[1]
-# primer_name = sys.argv[2]
 
-barcodes_file = 'barcodes/barcodes.tsv'
-primer_name = 'BAC1'
+
+barcodes_file = sys.argv[1]
+primer_name = sys.argv[2]
+
+# barcodes_file = 'barcodes/barcodes.tsv'
+# primer_name = 'BAC1'
 
 
 df = pd.read_csv(barcodes_file, sep='\t', names=['SAMPLE_ID', 'PRIMER_ID', 'FORWARD_BARCODE', 'REVERSE_BARCODE'])
@@ -40,6 +42,7 @@ sequences_df.loc[~sequences_df['QNAME_x'].str.contains('r_'), 'SEQ_F_BAR'] = seq
 sequences_df.loc[sequences_df['QNAME_y'].str.contains('r_'), 'SEQ_R_BAR'] = sequences_df.loc[sequences_df['QNAME_y'].str.contains('r_'), 'Sequence'].apply(lambda x: str(Seq(x)[-5:].reverse_complement()))
 sequences_df.loc[~sequences_df['QNAME_y'].str.contains('r_'), 'SEQ_R_BAR'] = sequences_df.loc[~sequences_df['QNAME_y'].str.contains('r_'), 'Sequence'].apply(lambda x: str(Seq(x)[:5]))
 
+
 samples_sequences_df = sequences_df.merge(df, left_on=['SEQ_F_BAR', 'SEQ_R_BAR'], right_on=['FORWARD_BARCODE', 'REVERSE_BARCODE'])
 
 grouped = samples_sequences_df.groupby('SAMPLE_ID')
@@ -54,4 +57,3 @@ for sample_id, data in grouped:
             elif 'r_' not in row['QNAME_y'] and 'r_' in row['QNAME_x'] and row['POS_y'] < row['POS_x']: 
                 sequence = str(Seq(row['Sequence']).reverse_complement())
                 file.write(f">{row['ID']}\n{sequence}\n")
-
