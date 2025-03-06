@@ -5,4 +5,4 @@ Project/output/
 Project/Backup/
 Project/wrong_barcodes
 Project/__pycache__/*
-Project/barcodes/LIB15_BARCODES.tsv
+Project/barcodes/*
