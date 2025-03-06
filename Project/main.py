@@ -20,6 +20,10 @@ elif config["HAS_BARCODES"] is False:
 if config['OUTPUT_PATH'][-1] != '/':
     config['OUTPUT_PATH'] += '/'
 
+if config['INCLUDE_PRIMERS'] in [True, "true", "t"]:
+    config['INCLUDE_PRIMERS'] = "t"
+else:
+    config['INCLUDE_PRIMERS'] = "f"
 
 if not os.path.exists(config['OUTPUT_PATH']): 
     os.makedirs(config['OUTPUT_PATH']) 
@@ -44,7 +48,7 @@ for primer_file in primers_files:
         if row['name'] not in primer_names:
             primer_names.append(row['name'])
         subprocess.run(
-            f'bash virtual_pcr.sh -s {primer_set} -o {config["OUTPUT_PATH"]} -c "{config["IDENTITY"]}" -b {config["HAS_BARCODES"]} -l {config["BARCODES_LEN"]} -B {config["BARCODES_PATH"]} -n {row["name"]} -f {row["forward"]} -r {row["reverse"]} -i {seq_file} -m {row["min"]} -M {row["max"]} -t {config["THREADS"]}',
+            f'bash virtual_pcr.sh -s {primer_set} -o {config["OUTPUT_PATH"]} -c "{config["IDENTITY"]}" -b {config["HAS_BARCODES"]} -l {config["BARCODES_LEN"]} -B {config["BARCODES_PATH"]} -n "{row["name"]}" -f {row["forward"]} -r {row["reverse"]} -i {seq_file} -m {row["min"]} -M {row["max"]} -t {config["THREADS"]} -k {config["INCLUDE_PRIMERS"]}',
             shell=True,
             executable='/bin/bash'
         )

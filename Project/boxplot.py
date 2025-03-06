@@ -1,3 +1,5 @@
+import matplotlib.ticker as ticker
+import pandas as pd
 from Bio import SeqIO
 import matplotlib.pyplot as plt
 import os
@@ -7,9 +9,10 @@ def run(config, primer_names):
     # Lista de diretórios contendo os arquivos FASTA
 
 
-    input_directories = [item for item in os.listdir(config['OUTPUT_PATH']) if os.path.isdir(config['OUTPUT_PATH'])] 
-
+    input_directories = [item for item in os.listdir(config['OUTPUT_PATH']) if os.path.isdir(os.path.join(config['OUTPUT_PATH'], item))] 
     # Lista para armazenar as contagens de reads para cada pasta
+
+    samples_reads = {'Sample': [], 'Reads': []}
     read_counts = []
     max_reads = 0
     os.chdir(config['OUTPUT_PATH'])
@@ -30,9 +33,13 @@ def run(config, primer_names):
                         if len(records) > max_reads:
                             max_reads = len(records)
                         folder_read_counts.append(len(records))
+                        samples_reads['Sample'].append(file_basename)
+                        samples_reads['Reads'].append(len(records))
 
 
         read_counts.append(folder_read_counts)
+    df = pd.DataFrame(samples_reads)
+    df.to_csv("samples_reads.tsv", sep='\t', index=False)
 
     # Crie um gráfico boxplot para cada pasta
     plt.figure(figsize=(18, 6))
@@ -43,7 +50,6 @@ def run(config, primer_names):
     plt.yticks(range(0, max_reads + 1, 200))
 
     plt.yscale('log')
-    import matplotlib.ticker as ticker
     plt.gca().yaxis.set_major_formatter(ticker.ScalarFormatter())
     plt.gca().set_yticks([5, 10, 20, 50, 100, 200, 500, 800, 2000, 3000, 5000, 8000, 10000])
     plt.grid(axis='y')
@@ -52,4 +58,4 @@ def run(config, primer_names):
 
 
 if __name__ == '__main__':
-    run({'OUTPUT_PATH': 'output/'}, 'true', ['BAC1'])
+    run({'OUTPUT_PATH': 'output/lib8/lgm300', 'HAS_BARCODES': 'true'}, ['ANI2'])

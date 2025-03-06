@@ -63,6 +63,7 @@ Help()
    echo "   -l      Expected amplicon size limits, limit [DEFAULT: 100000]"
    echo "   -c      Cutoff value (identity/similarity) [0-1] [DEFAULT: 0.8]"
    echo "   -b      Barcodes length. [DEFAULT: 5]"
+   echo "   -k      Keep primers [t or f] [DEFAULT: t]"
    echo 
    echo "Required Arguments:"
    echo "   -n      Primer Pair Name"
@@ -72,7 +73,7 @@ Help()
 }
 
 
-while getopts hs:o:c:b:l:B:t:q:m:M:n:f:r:i: flag
+while getopts hs:o:c:b:k:l:B:t:q:m:M:n:f:r:i: flag
 do
     case "${flag}" in
         h) # display Help
@@ -83,6 +84,7 @@ do
         c) cut=${OPTARG};;
         l) barcodes_len=${OPTARG};;
         b) has_barcodes=${OPTARG};;
+        k) primincl=${OPTARG};;
         B) barcodes_file=${OPTARG};;
         t) thr=${OPTARG};;
         q) qual=${OPTARG};;
@@ -220,20 +222,39 @@ fi
 ##########################################
 # extract regions with BBMap cutprimers.sh
 
-if [[ ! -f ${logs}/done.cutprimer.${name}_${forwardl}_${reversel} ]]; then
-  echo "# extracting template sequences between primer matches"
-  find ${split} -type f -name "${name}_???.fq.gz" -printf '%P\n' |\
-    sort -n |\
-    parallel --workdir ${WORKDIR} --tmpdir ${TMPDIR} -j ${thr} cutprimers.sh -Xmx${mem} \
-      qin=${qual} \
-      in=${split}/{} \
-      out=${tmpout}/{}_16s.fq \
-      sam1=${tmpout}/forward.sam \
-      sam2=${tmpout}/reverse.sam \
-      include=${primincl} \
-      fixjunk=t && \
-  touch ${logs}/done.cutprimer.${name}_${forwardl}_${reversel}
+if [ $has_barcodes = true ] ; then
+  if [[ ! -f ${logs}/done.cutprimer.${name}_${forwardl}_${reversel} ]]; then
+    echo "# extracting template sequences between primer matches"
+    find ${split} -type f -name "${name}_???.fq.gz" -printf '%P\n' |\
+      sort -n |\
+      parallel --workdir ${WORKDIR} --tmpdir ${TMPDIR} -j ${thr} cutprimers.sh -Xmx${mem} \
+        qin=${qual} \
+        in=${split}/{} \
+        out=${tmpout}/{}_16s.fq \
+        sam1=${tmpout}/forward.sam \
+        sam2=${tmpout}/reverse.sam \
+        include="t" \
+        fixjunk=t && \
+    touch ${logs}/done.cutprimer.${name}_${forwardl}_${reversel}
+  fi
+else
+  if [[ ! -f ${logs}/done.cutprimer.${name}_${forwardl}_${reversel} ]]; then
+    echo "# extracting template sequences between primer matches"
+    find ${split} -type f -name "${name}_???.fq.gz" -printf '%P\n' |\
+      sort -n |\
+      parallel --workdir ${WORKDIR} --tmpdir ${TMPDIR} -j ${thr} cutprimers.sh -Xmx${mem} \
+        qin=${qual} \
+        in=${split}/{} \
+        out=${tmpout}/{}_16s.fq \
+        sam1=${tmpout}/forward.sam \
+        sam2=${tmpout}/reverse.sam \
+        include=${primincl} \
+        fixjunk=t && \
+    touch ${logs}/done.cutprimer.${name}_${forwardl}_${reversel}
+  fi
 fi
+
+
 
 ###########################################################
 # merge results and keep only reads in amplicon size range
@@ -269,9 +290,8 @@ conda deactivate
 # ===============================================================================
 
 if [ $has_barcodes = true ] ; then
-  python sep_samples.py ${barcodes_file} ${primername} ${out_folder}${primer_set}/
+  python sep_samples.py ${barcodes_file} ${primername} ${out_folder}${primer_set}/ ${primincl} ${forwardp} ${reversep}
 fi
-
 
 rm -r $split
 rm -r $logs
